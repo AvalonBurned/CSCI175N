@@ -14,8 +14,13 @@ struct Phone_Package {
 
 // function definition
 double costCalc(double user_data, Phone_Package pp) {
-	double total_package_cost;
-	total_package_cost = (user_data - pp.included_data) * pp.addtl_data_cost + pp.package_cost;
+	double total_package_cost = pp.package_cost;
+	double addtl_data = user_data - pp.included_data; 
+	if (addtl_data > 0) {
+		total_package_cost = (user_data - pp.included_data) * pp.addtl_data_cost + pp.package_cost;
+	}
+	else; 
+
 	return total_package_cost;
 };
 
@@ -73,6 +78,7 @@ Please select which package you have (a/b/c).
 
 	// calculate the user's bill
 	total_package_cost = costCalc(user_data, user_package);
+	std::cout << total_package_cost;
 
 	
 	// calculate all the plans
