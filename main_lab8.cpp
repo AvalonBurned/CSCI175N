@@ -56,7 +56,9 @@ double presentValue(std::tuple<double, double, int> tup1) {
 	double interest_rate, future_value;
 	int years;
 	//TODO: Check for divide by 0
+	//TODO: Need to calculate percentage correctly - need to validate
 	std::tie(interest_rate, future_value, years) = tup1;
+	interest_rate = interest_rate / 100;
 	double present_value = future_value / pow((1 + interest_rate), years); 
 	return present_value;
 }
