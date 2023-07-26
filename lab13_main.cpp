@@ -38,7 +38,7 @@ int countConsot(char* prompt) {
 	return consot_count;
 }
 
-const int SIZE = 3;
+const int SIZE = 50;
 
 int main() {
 	char option = 0;
@@ -46,10 +46,11 @@ int main() {
 	char prompt[SIZE] = {};
 	//int i = 0;
 
-	//have the user enter a string
 	std::cout << "Please enter a string of no more than " << (SIZE - 1) << " characters:\n";
 	std::cin.getline(prompt, SIZE);
-	if (std::cin.gcount() > 0) {
+	// This checks if there is overflow from the getline operation. If so, warns the user and clears the buffer.
+	// Note: does not protect the user from this
+	if (std::cin.gcount() == SIZE - 1 && std::strlen(prompt) == SIZE - 1) {
 		std::cout << "WARNING: String length execeeds maximum length. Some data may be lost.\n";
 		std::cin.clear();
 		std::cin.ignore(std::numeric_limits<char>::max(), '\n');
@@ -107,6 +108,13 @@ int main() {
 			std::cout << "You selected entering another string" << ".\n";
 			std::cout << "Please enter a string of no more than " << (SIZE - 1) << " characters:\n";
 			std::cin.getline(prompt, SIZE);
+			// This checks if there is overflow from the getline operation. If so, warns the user and clears the buffer.
+			// Note: does not protect the user from this
+			if (std::cin.gcount() == SIZE - 1 && std::strlen(prompt) == SIZE - 1) {
+				std::cout << "WARNING: String length execeeds maximum length. Some data may be lost.\n";
+				std::cin.clear();
+				std::cin.ignore(std::numeric_limits<char>::max(), '\n');
+			}
 			std::cout << "You entered: " << prompt << "\n";
 			break;
 	
