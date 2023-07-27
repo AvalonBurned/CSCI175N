@@ -20,7 +20,7 @@ The mode will be a pointer to the first instance of the mode. For example, if th
 //Function Definitons
 
 // Populate an array 
-int* popArray(int arr_len, int MAX_ARR_VALUE, int MIN_ARR_VALUE) {
+int* populateArray(int arr_len, int MAX_ARR_VALUE, int MIN_ARR_VALUE) {
 	
 	//does this have issues with lifecycle of this array? - if not, why?
 	// Initialize an array in a way that gets around a not constant array length value
@@ -47,23 +47,22 @@ float calcMean(int* arrptr, int arr_len) {
 	for (int i = 1; i < arr_len; i++) { //again, skips the first item in the array
 		mean += arrptr[i];
 	}
-	return mean;
+	return mean / (arr_len - 1);
 }
 
 // Calculate the mode of an array
-int* calcMode(int* arrptr, int arr_len, int MAX_ARR_VALUE) {
+// If there are two modes, this function returns the lower of the values
+int calcMode(int* arrptr, int arr_len, int MAX_ARR_VALUE) {
 	int* count = new int[MAX_ARR_VALUE + 1];
-	count = {};
 	int mode = 0;
 	int j = 0;
-
-	for (int i = 0; i < arr_len; i++) {
-		std::cout << arrptr[i] << ", ";
+	
+	for (int i = 0; i < (MAX_ARR_VALUE + 1); i++) {
+		count[i] = 0;
+		if (arrptr[i] <= MAX_ARR_VALUE) {
+			count[arrptr[i]]++; //increment counter for value
+		}
 	}
-	for (int i = 0; i < arr_len; i++)
-		// I need to better understand this syntax
-		// Something is very angy and throwing exceptions - access violations
-		count[arrptr[i]]++;
 
 	for (int i = 1; i < (MAX_ARR_VALUE + 1); i++) {
 		if (count[i] > j) {
@@ -71,13 +70,14 @@ int* calcMode(int* arrptr, int arr_len, int MAX_ARR_VALUE) {
 			mode = i;
 		}
 	}
-	std::cout << "The Mode is: " << mode;
-	
+	return mode;
+}
+
+int* firstMode(int* arrptr, int arr_len, int mode) {
+
 	//Point to the first instance of the mode
 	for (int i = 0; i < arr_len; i++) {
 		if (arrptr[i] == mode) {
-			// I don't know if this is returning the value the instructions want - I think this is returning a pointer?
-			std::cout << "The first occurance of the mode is at array position: " << i << "\n";
 			return &arrptr[i];
 		}
 	}
@@ -107,33 +107,33 @@ const int MIN_ARR_VALUE = 0;
 
 int main() {
 	//pick a random number between 10 and 25
-	srand(time(0));
+	//srand(time(0));
 	int arr_len = rand() % (MAX_VALUE + 1 - MIN_VALUE) + MIN_VALUE;
 
 	// Create and Populate the Array
-	int* arrptr = popArray(arr_len, MAX_ARR_VALUE, MIN_ARR_VALUE);
+	int* arrptr = populateArray(arr_len, MAX_ARR_VALUE, MIN_ARR_VALUE);
 
 	// Sort the Array
 	sortArray(arrptr, arr_len);
 
 	//for continued sanity checking
-	/*
+	
 	for (int i = 0; i < arr_len; i++) {
 		std::cout << arrptr[i] << ", ";
 	}
-	*/
 
 	// Calculate the Median
 	float median = calcMedian(arrptr, arr_len);
-	std::cout << "The median is: " << median << "\n";
+	std::cout << "The median is: " << median << std::endl;
 
 	// Count the Mode
-	// TODO: Something is angy here
-	int* mode = calcMode(arrptr, arr_len, MAX_ARR_VALUE);
+	int mode = calcMode(arrptr, arr_len, MAX_ARR_VALUE);
+	int* mode_position = firstMode(arrptr, arr_len, mode);
+	std::cout << "The mode is: " << mode << std::endl;
 
 	//Calculate the Mean
 	float mean = calcMean(arrptr, arr_len);
-	std::cout << "The mean is: " << mean << "\n";
+	std::cout << "The mean is: " << mean << std::endl;
 
 	delete arrptr;
 	arrptr = nullptr;
