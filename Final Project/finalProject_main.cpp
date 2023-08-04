@@ -18,11 +18,23 @@
 #include <io.h>
 #include "libssh/libssh.h" 
 #include "sshFunctions.h"
+#include "parsingFunctions.h"
+#include "cumulativeFunctions.h"
 
 //Function Prototypes 
 
 // displays the menu
 void displayMenu(); 
+
+//gets the user's selection
+char getChoice();
+
+const char EXITING = '0';
+const char HW_RETURN = '1';
+const char SW_RETURN = '2';
+const char CPU_TEMP_RETURN = '3';
+const char BLINKY = '4';
+const char VALID_CHOICES[] = { EXITING, HW_RETURN, SW_RETURN, CPU_TEMP_RETURN, BLINKY };
 
 
 int main() {
@@ -32,18 +44,22 @@ int main() {
     ssh_session my_ssh_session;
     int verbosity = SSH_LOG_PROTOCOL;
     int port = 22;
-    std::string hostname = "raspberrypi";
+    //TODO: get the user to input this
+    std::string hostname = "10.0.0.54";
     const char* username = "admin";
     //TODO: handle this not being hardcoded - use envvar or something
     const char* password = "admin";
     int rc;
 
+ 
+
+
     //Open Session and set options
     my_ssh_session = ssh_new();
     if (my_ssh_session == NULL)
         exit(-1);
-
-    ssh_options_set(my_ssh_session, SSH_OPTIONS_HOST, "raspberrypi");
+    
+    ssh_options_set(my_ssh_session, SSH_OPTIONS_HOST, "10.0.0.54");
     ssh_options_set(my_ssh_session, SSH_OPTIONS_LOG_VERBOSITY, &verbosity);
     ssh_options_set(my_ssh_session, SSH_OPTIONS_PORT, &port);
     ssh_options_set(my_ssh_session, SSH_OPTIONS_USER, &username);
@@ -52,10 +68,6 @@ int main() {
     rc = ssh_connect(my_ssh_session);
     if (rc != SSH_OK)
     {
-        //TODO: stop using fprint
-        fprintf(stderr, "Error connecting to localhost: %s\n",
-            ssh_get_error(my_ssh_session));
-        // do not remove above until std::cout method is validated
         std::cout << "Error connecting to " << hostname << ": "
             << ssh_get_error(my_ssh_session) << std::endl;
             ssh_free(my_ssh_session);
@@ -82,35 +94,98 @@ int main() {
     rc = ssh_userauth_password(my_ssh_session, username, password);
     if (rc != SSH_AUTH_SUCCESS)
     {
-        //TODO: fix to not use printf
-        fprintf(stderr, "Error authenticating with password: %s\n",
-            ssh_get_error(my_ssh_session));
-        // do not remove above until std::cout method is validated
         std::cout << "Error authenticating with password: "
             << ssh_get_error(my_ssh_session) << std::endl;
         ssh_disconnect(my_ssh_session);
         ssh_free(my_ssh_session);
         exit(-1);
     }
-    const char* os_command = "hostnamectl | grep -i operating";
-    const char* cpu_temp_command = "/usr/bin/vcgencmd measure_temp";
-    const char* hostname_command = "hostname";
-    const char* kernel_command = "hostnamectl | grep -i kernel";
+
+    //One we've connected then the real fun begins
+    char choice = 0;
+    do {
+        displayMenu();
+        choice = getChoice();
+        std::cout << "This is in Main: " << choice << std::endl;
+        switch (choice)
+        {
+        case '0':
+            std::cout << "Exiting..." << std::endl;
+            return 0;
+             
+        case '1':
+            std::cout << "HW Info" << std::endl;
+
+            break;
+        
+        case '2':
+            std::cout << "SW Info" << std::endl;
+            break;
+        
+        case '3':
+            std::cout << "CPU Temp" << std::endl;
+            break;
+
+        case '4':
+            std::cout << "Blinky blink" << std::endl;
+            std::cout << "Sorry, this is a firmware problem..." << std::endl;
+            break;
+
+        default:
+            std::cout << "You did not select a valid option. Exiting...\n";
+            return 1;
+        }
+
+    }
+    while (choice != 0);
+
+    Command command;
+
     std::string os_command_output = "", cpu_temp_command_output = "", 
-        hostname_command_output = "", kernel_command_output = "";
+        hostname_command_output = "", kernel_command_output = "",
+        sn_command_output = "", opfreq_command_output = "", memory_command_input = "";
 
-    runCommand(my_ssh_session, os_command, os_command_output);
-    runCommand(my_ssh_session, cpu_temp_command, cpu_temp_command_output);
-    runCommand(my_ssh_session, hostname_command, hostname_command_output);
-    runCommand(my_ssh_session, kernel_command, kernel_command_output);
+    // need to do some kind of error catching here since it returns an int, but not critical failure
+    runCommand(my_ssh_session, command.os, os_command_output);
+    runCommand(my_ssh_session, command.hostname, hostname_command_output);
+    runCommand(my_ssh_session, command.kernel, kernel_command_output);
+    //runCommand(my_ssh_session, command.sn, sn_command_output);
 
+
+ 
     std::cout << "This is in main: " << os_command_output << std::endl;
+    std::string os = stringParse(os_command_output, ':');
+    std::string kernel = stringParse(kernel_command_output, ':');
 
+
+    //HW_Data raspi_hw_data;
+    //SW_Data raspi_sw_data;
     
 	return 0;
 }
 
 
 void displayMenu() {
+    std::cout <<
+        R"(
+1. Get Hardware Information (SN)
+2. Get Software Information (OS, Kernel)
+3. Get CPU Temperature
+4. Make the LED go blinky!
+Please make your selection (0 to exit program):
+)";
+}
 
+char getChoice() {
+    char choice;
+    while (true) {
+        std::cin >> choice;
+        std::cout << choice;
+
+        if (std::strchr(VALID_CHOICES, choice) != NULL) {
+            return choice;
+        }
+        std::cout << "Invalid Entry. Please enter another value." << std::endl;
+        displayMenu();
+    }
 }

@@ -102,16 +102,12 @@ int verify_knownhost(ssh_session session)
     return 0;
 }
 
-//TODO: fix name
-// maybe I can do something like pass a pointer or refernece? 
 int runCommand(ssh_session session, const char* command, std::string& command_output)
 {
-
-    //std::string OS = "";
     ssh_channel channel;
     int rc;
     char buffer[256];
-    int nbytes;
+    int nbytes = 0;
 
     channel = ssh_channel_new(session);
     if (channel == NULL)
@@ -131,22 +127,20 @@ int runCommand(ssh_session session, const char* command, std::string& command_ou
         ssh_channel_free(channel);
         return rc;
     }
-
     nbytes = ssh_channel_read(channel, buffer, sizeof(buffer), 0);
-    while (nbytes > 0)
-    {
-        if (_write(1, buffer, nbytes) != (unsigned int)nbytes)
-        {
-            ssh_channel_close(channel);
-            ssh_channel_free(channel);
-            return SSH_ERROR;
-        }
-        nbytes = ssh_channel_read(channel, buffer, sizeof(buffer), 0);
-        command_output = nbytes;
-
-
+    // if nbytes is 0 there is no data, if it is -1 there is an error
+    //TODO: clean up error catching
+    if (nbytes < 0 || nbytes == 0) {
+        std::cout << nbytes;
+        std::cout << "potential invalid command" << std::endl;
+        return SSH_ERROR;
     }
+
+    //convert the buffer to a string and update the variable
+    buffer[nbytes] = '\0';
+    command_output = std::string(buffer);
     std::cout << command_output << std::endl;
+
     ssh_channel_send_eof(channel);
     ssh_channel_close(channel);
     ssh_channel_free(channel);
