@@ -1,55 +1,31 @@
-//functions that make the data pretty for the user
+//Functions that make the data pretty and ready to display
 
 #include <iostream>
-#include <iomanip>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
-//TODO: Update for Hardware data
-struct HW_Data {
-	std::string package_name = "";
-	double package_cost = 0;
-	double included_data = 0;
-	double addtl_data_cost = 0;
-};
-
-//TODO: Update for Software data
-struct SW_Data {
-	std::string package_name = "";
-	double package_cost = 0;
-	double included_data = 0;
-	double addtl_data_cost = 0;
-};
-
+// This approach has scalability concerns and relies on a knowledge of how the 
+// data is returned by the system
 std::string stringParse(std::string command_output, char delim) {
 		std::istringstream iss(command_output);
 		std::string token;
-		while (std::getline(iss, token, delim))
-		{
-			std::cout << token << std::endl;
-		}
+		while(std::getline(iss, token, delim)); //returns last token
 		return token;
 }
 
-void hwDataDisplay(std::string hostname) {
-	//TODO: make this prettier
-	std::cout << "\nHardware Data\n";
-	std::cout << "- - - - - - - - - - - - - - - -\n";
-	std::cout << std::left << std::setw(19) << "Hostname: " << std::right << std::setw(8) << hostname << std::endl;
-	//std::cout << std::left << std::setw(19) << "Memory: " << std::right << std::setw(8) << total_weight << '\n';
-	//std::cout << std::left << std::setw(19) << "Storage:  " << std::right << std::setw(8) << prod_weight << '\n';
-	//std::cout << std::left << std::setw(19) << "CPU Temperature: " << std::right << std::setw(8) << int_num_widgets << '\n';
-	//std::cout << std::left << std::setw(19) << "CPU Operating Frequency: " << std::right << std::setw(8) << leftover_weight << '\n';
-	
+// removes leading and trailing spaces 
+std::string removeSpace(std::string command_output) {
+
+	std::string::iterator it;
+	it = std::find_if_not(command_output.begin(), command_output.end(), isspace);
+	command_output.erase(command_output.begin(), it);
+
+	std::string::reverse_iterator r_it;
+	r_it = std::find_if_not(command_output.rbegin(), command_output.rend(), isspace);
+	// need .base() to access the interator
+	command_output.erase(r_it.base(), command_output.end());
+
+	return command_output;
 }
 
-void swDataDisplay() {
-	std::cout << "\nSoftware Data\n";
-	std::cout << "- - - - - - - - - - - - - - - -\n";
-	//std::cout << std::left << std::setw(19) << "Hostname: " << std::right << std::setw(8) << hostname << std::endl;
-	//std::cout << std::left << std::setw(19) << "Operating System: " << std::right << std::setw(8) << total_weight << '\n';
-	//std::cout << std::left << std::setw(19) << "Kernel:  " << std::right << std::setw(8) << prod_weight << '\n';
-	//std::cout << std::left << std::setw(19) << "Number of Widgets: " << std::right << std::setw(8) << int_num_widgets << '\n';
-	//std::cout << std::left << std::setw(19) << "Extra Weight: " << std::right << std::setw(8) << leftover_weight << '\n';
-
-}
